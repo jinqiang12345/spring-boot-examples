@@ -1,0 +1,12 @@
+2018-04-20 11:08:59,469 ERROR (GlobalExceptionHandler.java:26)- 66666
+2018-04-20 11:09:00,760 INFO (LogTestController.java:19)- visit controller
+2018-04-20 11:09:00,761 ERROR (GlobalExceptionHandler.java:26)- 66666
+2018-04-20 11:09:01,507 INFO (LogTestController.java:19)- visit controller
+2018-04-20 11:09:01,507 ERROR (GlobalExceptionHandler.java:26)- 66666
+2018-04-20 12:48:14,542 INFO (StartupInfoLogger.java:50)- Starting ProjectApplication on DESKTOP-5ITJ2K7 with PID 3064 (D:\springboot\project\target\classes started by jinqiang in D:\springboot\project)
+2018-04-20 12:48:14,544 DEBUG (StartupInfoLogger.java:53)- Running with Spring Boot v2.0.1.RELEASE, Spring v5.0.5.RELEASE
+2018-04-20 12:48:14,545 INFO (SpringApplication.java:659)- No active profile set, falling back to default profiles: default
+2018-04-20 12:48:16,575 INFO (StartupInfoLogger.java:59)- Started ProjectApplication in 2.282 seconds (JVM running for 2.544)
+2018-04-20 13:01:39,943 INFO (StartupInfoLogger.java:50)- Starting ProjectApplication on DESKTOP-5ITJ2K7 with PID 9600 (D:\springboot\project\target\classes started by jinqiang in D:\springboot\project)
+2018-04-20 13:01:39,952 DEBUG (StartupInfoLogger.java:53)- Running with Spring Boot v2.0.1.RELEASE, Spring v5.0.5.RELEASE
+2018-04-20 13:01:39,956 INFO (SpringApplication.java:659)- No active profile set, falling back to default profiles: default

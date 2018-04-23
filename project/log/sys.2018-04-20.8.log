@@ -1,0 +1,8 @@
+2018-04-20 13:01:42,746 INFO (StartupInfoLogger.java:59)- Started ProjectApplication in 3.325 seconds (JVM running for 4.07)
+2018-04-20 13:02:06,584 INFO (StartupInfoLogger.java:50)- Starting ProjectApplication on DESKTOP-5ITJ2K7 with PID 1944 (D:\springboot\project\target\classes started by jinqiang in D:\springboot\project)
+2018-04-20 13:02:06,587 DEBUG (StartupInfoLogger.java:53)- Running with Spring Boot v2.0.1.RELEASE, Spring v5.0.5.RELEASE
+2018-04-20 13:02:06,588 INFO (SpringApplication.java:659)- No active profile set, falling back to default profiles: default
+2018-04-20 13:02:08,392 INFO (StartupInfoLogger.java:59)- Started ProjectApplication in 2.046 seconds (JVM running for 2.33)
+2018-04-20 13:06:18,846 INFO (StartupInfoLogger.java:50)- Starting ProjectApplication on DESKTOP-5ITJ2K7 with PID 1160 (D:\springboot\project\target\classes started by jinqiang in D:\springboot\project)
+2018-04-20 13:06:18,849 DEBUG (StartupInfoLogger.java:53)- Running with Spring Boot v2.0.1.RELEASE, Spring v5.0.5.RELEASE
+2018-04-20 13:06:18,850 INFO (SpringApplication.java:659)- No active profile set, falling back to default profiles: default

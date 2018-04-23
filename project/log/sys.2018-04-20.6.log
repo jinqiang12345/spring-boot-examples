@@ -1,0 +1,10 @@
+2018-04-20 11:04:25,602 INFO (LogTestController.java:19)- visit controller
+2018-04-20 11:04:25,775 INFO (LogTestController.java:19)- visit controller
+2018-04-20 11:04:25,958 INFO (LogTestController.java:19)- visit controller
+2018-04-20 11:04:26,274 INFO (LogTestController.java:19)- visit controller
+2018-04-20 11:04:26,457 INFO (LogTestController.java:19)- visit controller
+2018-04-20 11:08:53,142 INFO (StartupInfoLogger.java:50)- Starting ProjectApplication on DESKTOP-5ITJ2K7 with PID 1172 (D:\springboot\project\target\classes started by jinqiang in D:\springboot\project)
+2018-04-20 11:08:53,145 DEBUG (StartupInfoLogger.java:53)- Running with Spring Boot v2.0.1.RELEASE, Spring v5.0.5.RELEASE
+2018-04-20 11:08:53,146 INFO (SpringApplication.java:659)- No active profile set, falling back to default profiles: default
+2018-04-20 11:08:54,928 INFO (StartupInfoLogger.java:59)- Started ProjectApplication in 2.033 seconds (JVM running for 2.294)
+2018-04-20 11:08:59,467 INFO (LogTestController.java:19)- visit controller
