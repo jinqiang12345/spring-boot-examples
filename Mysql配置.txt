@@ -1,0 +1,6 @@
+spring.datasource.url=jdbc:mysql://localhost:3306/road?useUnicode=true&characterEncoding=utf8&useSSL=false
+spring.datasource.username=root
+spring.datasource.password=
+spring.datasource.driver-class-name=com.mysql.jdbc.Driver
+
+高版本的mysql需要配置一下是否进行ssl链接
