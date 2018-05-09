@@ -1,0 +1,25 @@
+List<WebDto> list = new ArrayList<>();
+		XSSFWorkbook workbook = new XSSFWorkbook(new FileInputStream(ResourceUtils.getFile("classpath:工作簿1.xlsx")));
+		XSSFSheet sheet = workbook.getSheetAt(0);
+		for(int i = 0; i < sheet.getLastRowNum() + 1; i++) {
+			XSSFRow row = sheet.getRow(i);
+			int cell1 = (int)row.getCell(0).getNumericCellValue();
+			int cell2 = (int)row.getCell(1).getNumericCellValue();
+			list.add(new WebDto(cell1, cell2));
+		}
+		System.out.println("共有" + list.size() + "条数据：");
+		for(WebDto wDto : list) {
+			System.out.println(wDto);
+		}
+
+
+        <dependency>
+			<groupId>org.apache.poi</groupId>
+			<artifactId>poi</artifactId>
+			<version>3.9</version>
+		</dependency>
+		<dependency>
+		    <groupId>org.apache.poi</groupId>
+		    <artifactId>poi-ooxml</artifactId>
+		    <version>3.9</version>
+		</dependency>
