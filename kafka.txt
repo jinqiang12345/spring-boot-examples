@@ -1,0 +1,34 @@
+<dependency>
+			<groupId>org.springframework.kafka</groupId>
+			<artifactId>spring-kafka</artifactId>
+		</dependency>
+
+
+        @Autowired
+	KafkaTemplate<String, String> kafkaTemplate;
+	
+	Gson gson = new GsonBuilder().create();
+	
+	/**
+	 * 发送消息方法
+	 */
+	public void send() {
+		Message message = new Message();
+		message.setId(System.currentTimeMillis());
+		message.setMsg(UUID.randomUUID().toString());
+		message.setSendTime(new Date());
+		log.info(".........");
+		kafkaTemplate.send("zhisheng", gson.toJson(message));
+	}
+
+
+
+    @KafkaListener(topics = {"zhisheng"})
+	public void listen(ConsumerRecord<?, ?> record) {
+		Optional<?> kafkaMessage = Optional.ofNullable(record.value());
+		
+		if(kafkaMessage.isPresent()) {
+			Object message = kafkaMessage.get();
+			log.info("...........................");
+		}
+	}

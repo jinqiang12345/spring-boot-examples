@@ -1,0 +1,37 @@
+            <dependency>
+		      <groupId>org.apache.hadoop</groupId>
+		      <artifactId>hadoop-hdfs</artifactId>
+		      <version>3.1.0</version>
+		    </dependency>
+		
+		    <dependency>  
+		      <groupId>org.apache.hadoop</groupId>  
+		      <artifactId>hadoop-client</artifactId>  
+		      <version>3.1.0</version>  
+		    </dependency> 
+		
+		    <dependency>
+		      <groupId>org.apache.hadoop</groupId>
+		      <artifactId>hadoop-common</artifactId>
+		      <version>3.1.0</version>
+		    </dependency>
+
+
+
+        String uri = "hdfs://9.111.254.189:9000";
+		Configuration configuration = new Configuration();
+		FileSystem fSystem = FileSystem.get(URI.create(uri), configuration);
+		//列出hdfs上目录下的所有文件和目录
+		FileStatus[] status = fSystem.listStatus(new Path("/user/ddd"));
+		for(FileStatus status2 : status) {
+			System.out.println(status2);
+		}
+		//在hdfs的目录创建一个文件，并写入一个文本
+		FSDataOutputStream oStream = fSystem.create(new Path("/user/ddd/test.log"));
+		oStream.write("Hello World".getBytes());
+		oStream.flush();
+		oStream.close();
+		
+		//显示在hdfs的/user/fkong下指定文件的内容
+		InputStream iStream = fSystem.open(new Path("/user/ddd/test.log"));
+		IOUtil.copyCompletely(iStream, System.out);
