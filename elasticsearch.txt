@@ -1,0 +1,12 @@
+<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-elasticsearch</artifactId>
+		</dependency>
+
+public interface CityRepository extends ElasticsearchRepository<City, Long> {
+	
+}
+
+
+spring.data.elasticsearch.repositories.enabled=true
+spring.data.elasticsearch.cluster-nodes=127.0.0.1:9300
