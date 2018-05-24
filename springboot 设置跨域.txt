@@ -7,7 +7,7 @@ private CorsConfiguration buildConfig() {
     }  
       
     /** 
-     * ¿çÓò¹ıÂËÆ÷ 
+     * ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 
      * @return 
      */  
     @Bean  
@@ -16,3 +16,5 @@ private CorsConfiguration buildConfig() {
         source.registerCorsConfiguration("/**", buildConfig()); // 4  
         return new CorsFilter(source);  
     }  
+
+    ä¹Ÿå¯ä»¥ä½¿ç”¨@CrossOriginæ³¨è§£å®ç°è·¨åŸŸ
