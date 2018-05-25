@@ -1,0 +1,52 @@
+http://localhost:15672
+
+spring.application.name=rabbitmq-hello
+spring.rabbitmq.host=localhost
+spring.rabbitmq.port=5672
+spring.rabbitmq.username=guest
+spring.rabbitmq.password=guest
+
+
+<dependency>
+	<groupId>org.springframework.boot</groupId>
+	<artifactId>spring-boot-starter-amqp</artifactId>
+</dependency>
+
+
+@Component
+public class Sender {
+	@Autowired
+	AmqpTemplate amqpTemplate;
+	
+	public void send() {
+		String context = "hello" + new Date();
+		System.out.println("Sender :" + context);
+		this.amqpTemplate.convertAndSend("hello", context);
+	}
+}
+
+
+
+@Component
+@RabbitListener(queues = "hello")
+public class Receiver {
+	@RabbitHandler
+	public void process(String hello) {
+		System.out.println("Receiver :" + hello);
+	}
+}
+
+RabbitConfig.java
+@Configuration
+public class RabbitConfig {
+	
+	@Bean
+	public Queue helloQueue() {
+		return new Queue("hello");
+	}
+	
+	@Bean
+	public Queue worldQueue() {
+		return new Queue("world");
+	}
+}
