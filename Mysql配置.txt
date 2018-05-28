@@ -3,4 +3,10 @@ spring.datasource.username=root
 spring.datasource.password=
 spring.datasource.driver-class-name=com.mysql.jdbc.Driver
 
-¸ß°æ±¾µÄmysqlĞèÒªÅäÖÃÒ»ÏÂÊÇ·ñ½øĞĞsslÁ´½Ó
+ï¿½ß°æ±¾ï¿½ï¿½mysqlï¿½ï¿½Òªï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½Ç·ï¿½ï¿½ï¿½ï¿½sslï¿½ï¿½ï¿½ï¿½
+
+
+spring.datasource.driver-class-name=oracle.jdbc.driver.OracleDriver
+spring.datasource.url=jdbc:oracle:thin:@172.16.10.25:1521:torcl
+spring.datasource.username=center
+spring.datasource.password=centerDB12345
