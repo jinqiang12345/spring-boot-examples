@@ -1,0 +1,32 @@
+spring 中内置了cglib
+public class CglibProxy implements MethodInterceptor {
+	
+	public Object getProxy(Class cls) {
+		Enhancer enhancer = new Enhancer();
+		enhancer.setSuperclass(cls);
+		enhancer.setCallback(this);
+		Object proxy = enhancer.create();
+		return proxy;
+	}
+
+	@Override
+	public Object intercept(Object arg0, Method arg1, Object[] arg2, MethodProxy arg3) throws Throwable {
+		System.out.println("调用代理对象之前的逻辑");
+		Object result = arg3.invokeSuper(arg0, arg2);
+		System.out.println("调用代理对象之后的逻辑");
+		return result;
+	}
+
+}
+
+CglibProxy cglib = new CglibProxy();
+SayHello proxy = (SayHello) cglib.getProxy(SayHello.class);
+proxy.say("jinqiang");
+
+引入
+<!-- https://mvnrepository.com/artifact/cglib/cglib -->
+		<dependency>
+		    <groupId>cglib</groupId>
+		    <artifactId>cglib</artifactId>
+		    <version>3.2.6</version>
+		</dependency>
