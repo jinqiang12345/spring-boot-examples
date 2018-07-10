@@ -1,0 +1,84 @@
+for(var i = 0; i < 9; i++) {
+    var temp = '<div class="message"><div class="messageimage"></div><div class="messagebody"><div class="messagebodytexttop">锅炉注册内容<span class="state">截止时间：<span class="shutdowntime">2018-06-14 24:00:00</span></span></div><div class="messagebodytextbottom"><span class="textstyle1">数据源：<span class="subtext">锅炉注册内容</span></span><span class="textstyle">部门：<span class="subtext">行业发展和环境资源部</span></span><span class="textstyle">数据主题：<span class="subtext">机组</span></span></div><div class="messagebodytextright">2018.07.02 11:11:11</div></div></div>';
+    $("#style-1").append(temp);
+}
+var currentpage = 1;
+setpage(1, setlist(1, 20), 20);
+function setlist(nub, total) {
+	var list = [];
+	if(total < 8) {
+		for(var i = 1; i <= total; i++) {
+			list.push(i);
+		}
+	} else {
+		if(nub < 4) {
+			list.push(1);
+			list.push(2);
+			list.push(3);
+			list.push(4);
+			list.push(5);
+			list.push('...');
+			list.push(total);
+		} else if(nub > total - 3) {
+			list.push(1);
+			list.push('...');
+			list.push(total-4);
+			list.push(total-3);
+			list.push(total-2);
+			list.push(total-1);
+			list.push(total);
+		} else {
+			list.push(1);
+			list.push('...');
+			list.push(nub-1);
+			list.push(nub);
+			nub++;
+			list.push(nub);
+			list.push('...');
+			list.push(total);
+		}
+	}
+	return list;
+}
+function setpage(nub, list, total) {
+	$(".pagination").empty();
+	if(nub == 1) {
+		$(".pagination").append('<li id="firstpage" class="disabled"><a href="#">首页</a></li><li id="prepage" class="disabled"><a href="#">上一页</a></li>');
+	} else {
+		$(".pagination").append('<li id="firstpage"><a href="#">首页</a></li><li id="prepage"><a href="#">上一页</a></li>');
+	}
+	for(var i = 0; i < list.length; i++) {
+		if(list[i] == nub) {
+			$(".pagination").append('<li class="normalpage active"><a href="#">' + nub + '</a></li>');
+		} else if(list[i] === '...') {
+			$(".pagination").append('<li class="normalpage disabled"><a href="#">' + list[i] + '</a></li>');
+		} else {
+			$(".pagination").append('<li class="normalpage"><a href="#">' + list[i] + '</a></li>');
+		}
+	}
+	if(nub == total) {
+		$(".pagination").append('<li id="nextpage" class="disabled"><a href="#">下一页</a></li><li id="lastpage" class="disabled"><a href="#">尾页</a></li>');
+	} else {
+		$(".pagination").append('<li id="nextpage"><a href="#">下一页</a></li><li id="lastpage"><a href="#">尾页</a></li>');
+	}
+}
+$(document).on('click', ".normalpage",function() {
+	var temp = $(this).text();
+	currnetpage = temp;
+	$(this).addClass("active");
+	setpage(temp, setlist(temp, 20), 20);
+})
+$(document).on('click', "#firstpage",function() {
+	setpage(1, setlist(1, 20), 20);
+})
+$(document).on('click', "#lastpage",function() {
+	setpage(20, setlist(20, 20), 20);
+})
+$(document).on('click', "#prepage",function() {
+	currentpage--;
+	setpage(currentpage, setlist(currentpage, 20), 20);
+})
+$(document).on('click', "#nextpage",function() {
+	currentpage++;
+	setpage(currentpage, setlist(currentpage, 20), 20);
+})

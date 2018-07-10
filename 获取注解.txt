@@ -1,0 +1,9 @@
+Field[] fields = map.getClass().getDeclaredFields();
+        Auth auth = null;
+        for(Field field : fields) {
+        	auth = field.getAnnotation(Auth.class);
+        	if(auth == null || auth.s() == "auth") {
+        		continue;
+        	}
+        	System.out.println(auth.s() + field.getName());
+        }
