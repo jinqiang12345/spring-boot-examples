@@ -69,6 +69,7 @@
   </body>
   <script>
       var event = true;
+      var name = setTimeout(function(){console.log(111)}, 1000);
       $(".searchbutton").on('click', function() {
           if(event) {
             $(".searchbox").css({"width": "130px", "border": "1px solid burlywood"});
@@ -104,6 +105,7 @@
         var xx = e.originalEvent.x || e.originalEvent.layerX || 0 + 'px';
         var yy = e.originalEvent.y || e.originalEvent.layerY || 0 + 'px';
         $(".searchbox").css({"left": xx, "top": yy});
+        clearTimeout(name);
     });
     // function mouseMove(ev) {
     //     Ev = ev || window.event;
@@ -121,5 +123,6 @@
     //     };
     // }
     // document.onmousemove = mouseMove;
+    
   </script>
 </html>

@@ -1,0 +1,1936 @@
+require([], function() {
+	var index = {
+			$element: $('#indexhtml'),
+			width: $(window).width(),
+			options: '',
+			dc: [],
+			jt: [],
+			jtall: [],
+			jtsk: '',
+			dcsk: '',
+			collectmanage: true,
+			init: function() {
+				index.bindEvent();
+				index.getjtall();
+				index.getuserid();
+				index.getstat();
+				var height = (index.width * 60 / 192) + 'px';
+				$(".estop").css('height', height);
+			},
+			bindEvent: function() {
+				var me = this,
+				l = index,
+				elme = me.$element;
+				MAT.event.on("resizeView", function() {
+					var width = $(window).width();
+					var height = (width * 60 / 192) + 'px';
+					$(".estop").css('height', height);
+				});
+				$("#indexhtml").on('mousewheel', function() {
+					var top = $("#indexhtml").scrollTop();
+					if(top > 500) {
+						$(".backtotop").show();
+					} else {
+						$(".backtotop").hide();
+					}
+				});
+				$(".backtotop").on('click', function() {
+					$("#indexhtml").animate({scrollTop: 0}, 'slow');
+					$(this).hide();
+				});
+//				$("#jt").on('click', function(e) {
+//					$(".essearch-box").css('display', 'none');
+//					$("#map").show();
+//					$(".mapselect").show();
+//				});
+//				$(".mapselectitemclose").on('click', function(e) {
+//					$(".mapselect").fadeOut();
+//					$("#map").fadeOut();
+//				});
+				//电力数据分类按主题
+				$("#dlsjontopic").on('click', function(){
+				    $(this).addClass("esmenugroupnavbuttonselect");
+				    $("#dlsjonfrom").removeClass("esmenugroupnavbuttonselect");
+				    $("#dlsjboxontopic").show();
+				    $("#dlsjboxonfrom").hide();
+				});
+				//电力数据分类按来源
+				$("#dlsjonfrom").on('click', function(){
+				    $(this).addClass("esmenugroupnavbuttonselect");
+				    $("#dlsjontopic").removeClass("esmenugroupnavbuttonselect");
+				    $("#dlsjboxonfrom").show();
+				    $("#dlsjboxontopic").hide();
+				});
+				//文库分类按主题
+				$("#wkflontopic").on('click', function(){
+				    $(this).addClass("esmenugroupnavbuttonselect");
+				    $("#wkflonfrom").removeClass("esmenugroupnavbuttonselect");
+				    $("#wkflboxontopic").show();
+				    $("#wkflboxonfrom").hide();
+				});
+				//文库分类按来源
+				$("#wkflonfrom").on('click', function(){
+				    $(this).addClass("esmenugroupnavbuttonselect");
+				    $("#wkflontopic").removeClass("esmenugroupnavbuttonselect");
+				    $("#wkflboxonfrom").show();
+				    $("#wkflboxontopic").hide();
+				});
+				//输入框获取焦点显示类型选择框
+				$("#exsearchtext").on('focus', function() {
+				    $(".essearch-box").css('display', 'block');
+				    $(this).parent().css({'border-bottom-right-radius':'0px','border-bottom-left-radius':'0px'});
+				});
+				$(".esjq").keypress(function(e) {
+					if (e.keyCode == 13) {  
+				        e.preventDefault();
+				        $("#essearch").trigger('click');
+				    } 
+				});
+				//离开输入框和类型选择框当输入为空时隐藏类型选择框
+				$(".esjq").on('mouseleave', function() {
+				    if($("#exsearchtext").val() == '') {
+				        $("#exsearchtext").blur();
+				        $(".essearch-box").css('display', 'none');
+				        $(".essearch").css({'border-bottom-right-radius':'6px','border-bottom-left-radius':'6px'});
+				    }
+				});
+				//类型选择事件
+				$(".esbox").on('click', function() {
+					$(".esdcmenuitem").remove();
+				    $("#exsearchtext").unbind();
+				    $("#exsearchtext").on('focus', function() {
+				        $(".essearch-box").css('display', 'block');
+				        $(this).parent().css({'border-bottom-right-radius':'0px','border-bottom-left-radius':'0px'});
+				    });
+				    if($(this).hasClass("esboxselect")) {
+				        l.options = '';
+				    } else {
+				        l.options = $(this).text();
+				        $("#exsearchtext").focus();
+				    }
+				    $(this).toggleClass("esboxselect");
+				    $(this).siblings().removeClass("esboxselect");
+				    //电厂类型特殊处理
+				    if(l.options == '电厂') {
+				    	//监听输入事件
+				        $("#exsearchtext").on('input', function() {
+				        	if($(this).val() == '') {
+				        		$(".esdcmenu").empty();
+				        	} else {
+				        		var value = $(this).val();
+				                l.gettip(value, 'dc');
+				        	}
+				        });
+				    }
+				    if(l.options == '集团') {
+				        $("#exsearchtext").on('input', function() {
+				        	if($(this).val() == '') {
+				        		$(".esdcmenu").empty();
+				        	} else {
+				        		var value = $(this).val();
+				                l.gettip(value, 'jt');
+				        	}
+				        });
+				    }
+				});
+				$(".esboxhand").on('click', function() {
+					var l = index;
+					$.dialog({
+					      title: "手动选择集团电厂",
+					      width: 650,
+					      init: function($modal){
+					    	  var str = '<div class="dtppp">'+
+					    			'<div class="dcjtfield">';
+							    	 l.jtall.map(function(value, index, array) {
+							    		    str += '<div class="dcjtfielditem jtfielditem" jtsk='+ value.jt_sk +'><i class="fa fa-map-pin" style="margin-right:15px;"></i>'+value.jt_name+'<i class="fa fa-check dcitemcheck" style="float:right;line-height:45px"></i></div>';
+							    		});
+									str += '</div>'+
+									'<div class="dcdcfield">'+
+									'</div>'+
+								'</div>';
+					    		 $modal.find('.modal-body').html(str);
+					    		 $(".jtfielditem").on('click', function() {
+					    			 l.jtsk = $(this).attr('jtsk');
+					    			 $(".jtfielditem").removeClass('dcjtfielditemselect');
+					    			 $(".jtfielditem").find('.dcitemcheck').removeClass('dcitemcheckselect');
+					    			 $(".dcfielditem").removeClass('dcjtfielditemselect');
+					    			 l.dcsk = '';
+					    			 $(".dcfielditem").find('.dcitemcheck').removeClass('dcitemcheckselect');
+					    			 $(this).addClass('dcjtfielditemselect');
+					    			 $(this).find('.dcitemcheck').addClass('dcitemcheckselect');
+					    			 l.getdcitem(l.jtsk);
+					    		 });
+					      },
+					      buttons: [{
+			                    name:'确定',
+			                    active:true,
+			                    click:function($btn,$modal,dialog){
+			                    	if (l.dcsk != '') {
+			                    		localStorage.setItem("dc_sk", l.dcsk);
+			                    		location.hash = "/datamap/dc";
+			                    	} else {
+			                    		if(l.jtsk != '') {
+			                    			localStorage.setItem("jt_sk", l.jtsk);
+				                    		location.hash = "/datamap/jt";
+			                    		} else {
+			                    			MAT.utils.notific("请选择集团或电厂进行查询",'warn');
+			                    		}
+			                    	}
+			                    }
+			                },{
+			                    name:'取消',
+			                    type:'close',
+			                    click:function($btn,$modal,dialog){
+			                    	l.dcsk = '';
+			                    	l.jtsk = '';
+			                        dialog.hide();
+			                    }
+			                }]
+					    });
+				});
+				//导航页面
+				$("#nav").on('click', function(){
+				    $(this).addClass("esnavbuttononselect");
+				    $("#navattention").removeClass("esnavbuttononselect");
+				    $("#esmenu").show();
+				    $("#esmenuattention").hide();
+				});
+				//我的关注页面
+				$("#navattention").on('click', function(){
+				    $(this).addClass("esnavbuttononselect");
+				    $("#nav").removeClass("esnavbuttononselect");
+				    $("#esmenuattention").show();
+				    $("#esmenu").hide();
+				    if(!l.collectmanage) {
+				        $("#collectmanage").trigger('click');
+				    }
+				});
+				//管理我的收藏菜单键
+				$("#collectmanage").on('click', function(){
+				    if(l.collectmanage) {
+				        $(".esattentionboxdelete").css('display', 'block');
+				        $(this).text('完成');
+				        l.collectmanage = false;
+				    } else {
+				        $(".esattentionboxdelete").css('display', 'none');
+				        $(this).text('管理');
+				        l.collectmanage = true; 
+				    }
+				});
+				//设置页面跳转
+				$("#essearch").on("click", function(e) {
+					var text = $("#exsearchtext").val();
+					if(text == '' || l.options == '') {
+						MAT.utils.notific("请输入关键字并选择类型进行查询",'warn');
+						return;
+					} else if (l.options == '电厂'){
+						if(l.dc.length == 1) {
+							localStorage.setItem("dc_sk", l.dc[0].dc_sk);
+							location.hash = "/datamap/dc";
+						} else if(l.dc.length == 0) {
+							MAT.utils.notific("您所输入的电厂不存在",'warn');
+							return;
+						} else {
+							MAT.utils.notific("请输入精确的电厂名称或选择提示内容",'warn');
+							return;
+						}
+					} else if (l.options == '集团'){
+						if(l.jt.length == 1) {
+							localStorage.setItem("jt_sk", l.jt[0].jt_sk);
+							location.hash = "/datamap/jt";
+						} else if(l.jt.length == 0) {
+							MAT.utils.notific("您所输入的集团不存在",'warn');
+							return;
+						} else {
+							MAT.utils.notific("请输入精确的集团名称或选择提示内容",'warn');
+							return;
+						}
+					}
+					else {
+						localStorage.setItem("keyword", $("#exsearchtext").val());
+						if(l.options == '电力工程') {
+							location.hash = "/datamap/dataresultdlgc";
+						}
+						if(l.options == '电力供应') {
+							location.hash = "/datamap/dataresultdlgy";
+						}
+						if(l.options == '电力人员') {
+							location.hash = "/datamap/dataresultdlry";
+						}
+						if(l.options == '电力消费') {
+							location.hash = "/datamap/dataresult";
+						}
+						if(l.options == '电力生产') {
+							location.hash = "/datamap/dataresultdlsc";
+						}
+						if(l.options == '电力科技') {
+							location.hash = "/datamap/dataresultdlkj";
+						}
+						if(l.options == '国际电力') {
+							location.hash = "/datamap/gjdl/dataresultcjgjhy";
+						}
+						if(l.options == '电力标准') {
+							location.hash = "/datamap/dataresultdlbz";
+						}
+						if(l.options == '奖项评定') {
+							location.hash = "/datamap/dataresultjxpd";
+						}
+						if(l.options == '综合') {
+							MAT.utils.notific("当前主题暂无数据，请选择其他数据主题",'info');
+						}
+					}
+				});
+				
+			},
+			getuserid : function() {
+				MAT.utils.getUrl('/rest/datamap/userfocus/userid',{}, 
+						function(res) {
+						if(res.suc == 'yes') {
+							//没有收藏时展示
+							if(res.list.length == 0) {
+								$("#eshasattention").css('display', 'none');
+								$("#esnoattention").css('display', 'block');
+							} else {
+								$("#eshasattention").css('display', 'block');
+								$("#esnoattention").css('display', 'none');
+								for(var i = 0; i < res.list.length; i++) {
+									//显示收藏电厂box
+									$("#esmyattentiondc").append('<div class="esattentionbox">'+
+						                    '<div class="esattentionboxicon esattentionicondlgc"></div>'+
+						                    '<div class="esattentionboxtext" dc_sk='+res.list[i].userFocusKey.dc_sk+'>'+ res.list[i].item_name +'</div>'+
+						                    '<div class="esattentionboxdelete"><i class="fa fa-close"></i></div>'+
+						                '</div>');
+								}
+								//点击电厂跳转页面
+								$(".esattentionboxtext").on('click', function(){
+									//localStoragr存放电厂编号
+									localStorage.setItem("dc_sk", $(this).attr('dc_sk'));
+									location.hash = "/datamap/dc";
+								});
+								//删除收藏
+								$(".esattentionboxdelete").on('click', function(){
+									var id = $(this).parent().find('.esattentionboxtext').attr('dc_sk');
+									var em = $(this);
+									MAT.utils.postUrl('/rest/datamap/userfocus/delete',{
+											dcSk: id
+										}, 
+											function(res) {
+											if(res.suc == 'yes') {
+												em.parent().remove();
+												if($(".esattentionbox").length == 0) {
+													$("#eshasattention").css('display', 'none');
+													$("#esnoattention").css('display', 'block');
+												}
+											}
+											MAT.utils.unblock();
+										}, function(err) {
+											MAT.utils.unblock();
+										});
+								});
+							}
+						}
+						MAT.utils.unblock();
+					}, function(err) {
+						MAT.utils.unblock();
+					});
+			},
+			getstat : function() {
+				//获取展示面板数据
+				MAT.utils.getUrl('/rest/datamap/stat',{}, 
+						function(res) {
+						if(res.suc == 'yes') {
+							var list = res.list;
+							$("#esnewdata").text(list[2].v);
+							$("#esnewfile").text(list[3].v);
+							$("#esdata").text(list[0].v);
+							$("#esfile").text(list[1].v);
+						}
+						MAT.utils.unblock();
+					}, function(err) {
+						MAT.utils.unblock();
+					});
+			},
+			getjt : function() {
+				MAT.utils.getUrl('/rest/datamap/jt',{}, 
+						function(res) {
+						if(res.suc == 'yes') {
+						}
+						MAT.utils.unblock();
+					}, function(err) {
+						MAT.utils.unblock();
+					});
+			},
+			gettip : function(name, type) {
+				var l = index;
+				if (type == 'dc') {
+					MAT.utils.getUrl('/rest/datamap/dc/like', {
+						keyword: name,
+					}, function(res) {
+						if(res.suc == 'yes') {
+							$(".esdcmenu").empty();
+							if(res.list.length == 0){
+								l.dc=[];
+								$(".esdcmenu").append('<div class="esdcmenuitem">无结果</div>');
+								return;
+							}
+								l.dc = res.list;
+								for (var q = 0; q < l.dc.length; q++) {
+				                	$(".esdcmenu").append('<div class="esdcmenuitem">'+ l.dc[q].item_name.replace(name, '<span style="color: red">'+name+'</span>') +'</div>');
+				                }
+				            	$(".esdcmenuitem").on("click", function() {
+				            		$("#exsearchtext").val($(this).text());
+				            		$("#exsearchtext").focus();
+				            		l.dc = l.dc.filter(t => t.item_name == $(this).text());
+				            		$(".esdcmenuitem").remove();
+		                		});
+						} else {
+							l.dc = [];
+						}
+						MAT.utils.unblock();
+					}, function(err) {
+						l.dc = [];
+						MAT.utils.unblock();
+					});
+				} else if (type == 'jt') {
+					MAT.utils.getUrl('/rest/datamap/jt/like', {
+						keyword: name,
+					}, function(res) {
+						if(res.suc == 'yes') {
+							$(".esdcmenu").empty();
+							if(res.list.length == 0){
+								l.jt=[];
+								$(".esdcmenu").append('<div class="esdcmenuitem">无结果</div>');
+								return;
+							}
+								l.jt = res.list;
+								for (var q = 0; q < l.jt.length; q++) {
+				                	$(".esdcmenu").append('<div class="esdcmenuitem">'+ l.jt[q].jt_name.replace(name, '<span style="color: red">'+name+'</span>') +'</div>');
+				                }
+				            	$(".esdcmenuitem").on("click", function() {
+				            		$("#exsearchtext").val($(this).text());
+				            		$("#exsearchtext").focus();
+				            		l.jt = l.jt.filter(t => t.jt_name == $(this).text());
+				            		$(".esdcmenuitem").remove();
+		                		});
+						} else {
+							l.jt = [];
+						}
+						MAT.utils.unblock();
+					}, function(err) {
+						l.jt = [];
+						MAT.utils.unblock();
+					});
+				}
+			},
+			getdcitem : function(jtsk) {
+				var l = index;
+				MAT.utils.getUrl('/rest/datamap/dc/jtsk', {
+					jtSk: jtsk
+				}, function(res) {
+					if(res.suc == 'yes') {
+						$(".dcdcfield").empty();
+						for(var i = 0; i < res.list.length; i++) {
+							temp = res.list[i].item_name;
+							if(res.list[i].item_name.length > 17) {
+								temp = res.list[i].item_name.substring(0, 15) + '...';
+							}
+							$(".dcdcfield").append('<div class="dcjtfielditem dcfielditem" dcsk='+ res.list[i].dc_sk +' data-toggle="tooltip" title='+ res.list[i].item_name +'><i class="fa fa-map-pin" style="margin-right:15px;"></i>'+ temp +'<i class="fa fa-check dcitemcheck" style="float:right;line-height:45px"></i></div>');
+						}
+						$(".dcfielditem").on('click', function() {
+			    			 l.dcsk = $(this).attr('dcsk');
+			    			 $(".dcfielditem").removeClass('dcjtfielditemselect');
+			    			 $(".dcfielditem").find('.dcitemcheck').removeClass('dcitemcheckselect');
+			    			 $(this).addClass('dcjtfielditemselect');
+			    			 $(this).find('.dcitemcheck').addClass('dcitemcheckselect');
+			    			 
+			    		 });
+					}
+					MAT.utils.unblock();
+				}, function(err) {
+					MAT.utils.unblock();
+				});
+			},
+			getjtall : function() {
+				var l = index;
+				MAT.utils.getUrl('/rest/datamap/jt/all', {}, function(res) {
+					if(res.suc == 'yes') {
+						l.jtall = res.list;
+					}
+					MAT.utils.unblock();
+				}, function(err) {
+					MAT.utils.unblock();
+				});
+			},
+	}
+	index.init();
+});
+
+
+
+
+
+require(['echarts'], function(echarts) {
+	var dataresult = {
+			$element: $('#dataresult-container'),
+			//弹出隐藏控制变量
+			year: true,
+			month: true,
+			area: true,
+			work: true,
+			jqindex: true,
+			jqname: true,
+			//卡片或列表控制变量
+			listorcard: true,
+			//多选框数据
+			optionsyear: [],
+			//多选框选中数据
+			optionsyearselect: [],
+			optionsmonth: [],
+			optionsmonthselect: [],
+			optionsarea: [],
+			optionsareaselect: [],
+			optionswork: [],
+			optionsworkselect: [],
+			optionsindex: [],
+			optionsindexselect: [],
+			optionsnameall: [],
+			optionsname: [],
+			optionsnameselect: [],
+			//当前页
+			curr: 1,
+			//页数总数
+			total: 0,
+			totalnums: 0,
+			//存放原始数据
+			jqlist: [],
+			init: function() {
+				var me = dataresult;
+				dataresult.bindEvent();
+				dataresult.getfilterdata();
+				dataresult.getdata();
+			},
+			bindEvent:function(){
+				var me = this,
+				l = dataresult,
+				elme = me.$element;
+				//隐藏下拉框
+				$(".esselect").on("mouseleave", function() {
+				    $(".eslabelselectbox").css('display', 'none');
+				    l.year = true;
+				    l.month = true;
+				    l.area = true;
+				    l.work = true;
+				    l.jqindex = true;
+				    l.jqname = true;
+				});
+				//年份选择下拉框
+				$("#esyearlabel").on('click', function() {
+				    if(l.year) {
+				        $("#esyearselectbox").css('display', 'block');
+				        l.year = false;
+				    } else {
+				        $("#esyearselectbox").css('display', 'none');
+				        l.year = true;
+				    }     
+				});
+				//月份选择下拉框
+				$("#esmonthlabel").on('click', function() {
+				    if(l.month) {
+				        $("#esmonthselectbox").css('display', 'block');
+				        l.month = false;
+				    } else {
+				        $("#esmonthselectbox").css('display', 'none');
+				        l.month = true;
+				    }     
+				});
+				//地区选择下拉框
+				$("#esarealabel").on('click', function() {
+				    if(l.area) {
+				        $("#esareaselectbox").css('display', 'block');
+				        l.area = false;
+				    } else {
+				        $("#esareaselectbox").css('display', 'none');
+				        l.area = true;
+				    }     
+				});
+				//行业分类下拉框
+				$("#esworklabel").on('click', function() {
+				    if(l.work) {
+				        $("#esworkselectbox").css('display', 'block');
+				        l.work = false;
+				    } else {
+				        $("#esworkselectbox").css('display', 'none');
+				        l.work = true;
+				    }     
+				});
+				//所选主题下拉框
+				$("#esindexlabel").on('click', function() {
+				    if(l.jqindex) {
+				        $("#esindexselectbox").css('display', 'block');
+				        l.jqindex = false;
+				    } else {
+				        $("#esindexselectbox").css('display', 'none');
+				        l.jqindex = true;
+				    }     
+				});
+				//指标名称下拉框
+				$("#esnamelabel").on('click', function() {
+				    if(l.jqname) {
+				        $("#esnameselectbox").css('display', 'block');
+				        l.jqname = false;
+				    } else {
+				        $("#esnameselectbox").css('display', 'none');
+				        l.jqname = true;
+				    }     
+				});
+				//卡片和列表展示切换
+				$("#eslistorcard").on('click', function() {
+				    if(l.listorcard) {
+				        $("#escardbody").css('display', 'none');
+				        $("#eslistbody").css('display', 'block');
+				        $(this).empty();
+				        $(this).append('<div class="escard"></div>卡片')
+				        l.listorcard = false;
+				    } else {
+				        $("#eslistbody").css('display', 'none');
+				        $("#escardbody").css('display', 'block');
+				        $(this).empty();
+				        $(this).append('<div class="eslist"></div>列表')
+				        l.listorcard = true;
+				    }
+				});
+				//确认按钮
+				$("#esconfirm").on('click', function() {
+					dataresult.curr = 1;
+					localStorage.setItem("keyword", '*');
+					dataresult.getdata(1, 16);
+					$(this).blur();
+				});
+				//重置按钮
+				$("#esreset").on('click', function() {
+					localStorage.setItem("keyword", '*');
+					dataresult.optionsyearselect = [];
+					dataresult.optionsmonthselect = [];
+					dataresult.optionsareaselect = [];
+					dataresult.optionsworkselect = [];
+					dataresult.optionsindexselect = [];
+					dataresult.optionsname = [];
+					dataresult.optionsnameselect = [];
+					dataresult.curr = 1;
+					dataresult.getfilterdata();
+					dataresult.getdata(1, 16);
+					$(this).blur();
+				});
+				//图标数据显示
+				elme.on('click', '.cardmodal', function() {
+					var tempindex = $(this).attr('index');
+					var list = dataresult.jqlist[tempindex];
+					$(this).find('.escontentcard').css('border', '1px dashed #8db9df');
+					//年度数据
+					if(list.month1 == '') {
+						$.dialog({
+						      title: "数据趋势分析",
+						      width: 600,
+						      init: function($modal){
+						    	  var btn = '<button type="button" class="btn btn-info dialogbtn">'+list.year+'</button>'+
+						    	  '<button type="button" class="btn btn-info dialogbtn">'+list.provoice+'</button>'+
+						    	  '<button type="button" class="btn btn-info dialogbtn">'+(list.hyflmc == '空'?'行业:空':list.hyflmc)+'</button>'+
+						    	  '<button type="button" class="btn btn-info dialogbtn">'+list.indexname+'</button>';
+						    	  var str = btn + '<ul id="myTab" class="nav nav-tabs">'+
+						    			'<li class="active">'+
+									  		'<a href="#year" data-toggle="tab">'+
+									  			 '年度'+
+									  		'</a>'+
+									  	'</li>'+
+									  	'<li><a href="#area" data-toggle="tab">省份</a></li>';
+						    	  if(list.hyflmc != '空') {
+						    		  str += '<li><a href="#work" data-toggle="tab">行业</a></li>';
+						    	  }
+									  	str += 
+									  '</ul>'+
+									 ' <div id="myTabContent" class="tab-content">'+
+									  	'<div class="tab-pane fade in active" id="year">'+
+									  		'<div style="width: 550px;height: 400px;" id="chartyear"></div>'+
+									  	'</div>'+
+									  	'<div class="tab-pane fade" id="area">'+
+									  		'<div style="width: 550px;height: 400px;" id="chartarea"></div>'+
+									  	'</div>'+
+									  	'<div class="tab-pane fade" id="work">'+
+									  		'<div style="width: 550px;height: 400px;" id="chartwork"></div>'+
+									  	'</div>'+
+									  '</div>';
+						    		  $modal.find('.modal-body').html(str);
+						    		  var body = {
+												year: list.year,
+												month1: list.month1,
+												hyno: (list.hyno || '*'),
+												dqno: '*',
+												indexcode: list.indexcode,
+												subject: 'dlxf'
+											};
+						    	  var body2 = {
+											year: '*',
+											month1: list.month1,
+											hyno: (list.hyno || '*'),
+											dqno: list.dqno,
+											indexcode: list.indexcode,
+											subject: 'dlxf'
+										};
+						    	  var body3 = {
+											year: list.year,
+											month1: list.month1,
+											hyno: '*',
+											dqno: list.dqno,
+											indexcode: list.indexcode,
+											subject: 'dlxf'
+										};
+						    	  dataresult.getOptiondata(list, body2, dataresult.setLine2);
+						    	  dataresult.getOptiondata(list, body, dataresult.setBar);
+						    	  if(list.hyflmc != '空') {
+						    		  dataresult.getOptiondata(list, body3, dataresult.setBar2);
+						    	  }
+						      }
+						    });
+					} else {
+						$.dialog({
+						      title: "数据趋势分析",
+						      width: 600,
+						      init: function($modal){
+						    	  var btn = '<button type="button" class="btn btn-info dialogbtn">'+list.year+'</button>'+
+						    	  '<button type="button" class="btn btn-info dialogbtn">'+list.month1+'月</button>'+
+						    	  '<button type="button" class="btn btn-info dialogbtn">'+list.provoice+'</button>'+
+						    	  '<button type="button" class="btn btn-info dialogbtn">'+(list.hyflmc == '空'?'行业:空':list.hyflmc)+'</button>'+
+						    	  '<button type="button" class="btn btn-info dialogbtn">'+list.indexname+'</button>';
+						    	  var str = btn + '<ul id="myTab" class="nav nav-tabs">'+
+						    			'<li class="active">'+
+									  		'<a href="#month" data-toggle="tab">'+
+									  			 '月份'+
+									  		'</a>'+
+									  	'</li>'+
+									  	'<li><a href="#year" data-toggle="tab">年度</a></li>'+
+									  	'<li><a href="#area" data-toggle="tab">省份</a></li>';
+									  	if(list.hyflmc != '空') {
+								    		  str += '<li><a href="#work" data-toggle="tab">行业</a></li>';
+								    	  }
+											  	str +=
+									  '</ul>'+
+									 ' <div id="myTabContent" class="tab-content">'+
+									  	'<div class="tab-pane fade in active" id="month">'+
+									  		'<div style="width: 550px;height: 400px;" id="chartmonth"></div>'+
+									  	'</div>'+
+									  	'<div class="tab-pane fade" id="year">'+
+									  		'<div style="width: 550px;height: 400px;" id="chartyear"></div>'+
+									  	'</div>'+
+									  	'<div class="tab-pane fade" id="area">'+
+									  		'<div style="width: 550px;height: 400px;" id="chartarea"></div>'+
+									  	'</div>'+
+									  	'<div class="tab-pane fade" id="work">'+
+									  		'<div style="width: 550px;height: 400px;" id="chartwork"></div>'+
+									  	'</div>'+
+									  '</div>';
+						    		  $modal.find('.modal-body').html(str);
+						    	  var body = {
+											year: list.year,
+											month1: list.month1,
+											hyno: (list.hyno || '*'),
+											dqno: '*',
+											indexcode: list.indexcode,
+											subject: 'dlxf'
+										};
+						    	  var body1 = {
+											year: list.year,
+											month1: '*',
+											hyno: (list.hyno || '*'),
+											dqno: list.dqno,
+											indexcode: list.indexcode,
+											subject: 'dlxf'
+										};
+						    	  var body2 = {
+											year: '*',
+											month1: list.month1,
+											hyno: (list.hyno || '*'),
+											dqno: list.dqno,
+											indexcode: list.indexcode,
+											subject: 'dlxf'
+										};
+						    	  var body3 = {
+											year: list.year,
+											month1: list.month1,
+											hyno: '*',
+											dqno: (list.hyno || '*'),
+											indexcode: list.indexcode,
+											subject: 'dlxf'
+										};
+						    	  dataresult.getOptiondata(list, body1, dataresult.setLine);
+						    	  dataresult.getOptiondata(list, body2, dataresult.setLine2);
+						    	  dataresult.getOptiondata(list, body, dataresult.setBar);
+						    	  if(list.hyflmc != '空') {
+						    		  dataresult.getOptiondata(list, body3, dataresult.setBar2);
+						    	  }
+						      }
+						    });
+					}
+				});
+				//为下拉框多选框添加事件
+				elme.on('click', '.yearcheckbox', l.yearcheckboxclick);
+				elme.on('click', '.monthcheckbox', l.monthcheckboxclick);
+				elme.on('click', '.areacheckbox', l.areacheckboxclick);
+				elme.on('click', '.workcheckbox', l.workcheckboxclick);
+				elme.on('click', '.indexcheckbox', l.indexcheckboxclick);
+				elme.on('click', '.namecheckbox', l.namecheckboxclick);
+				//选择标签事件
+				elme.on('click', '.itemyear', function() {
+			        l.optionsyearselect = l.optionsyearselect.filter(t => t != $(this).parent().text());
+					l.changeoptions('year', l.optionsyearselect, l.optionsyear);
+				});
+				elme.on('click', '.itemmonth', function() {
+			        l.optionsmonthselect = l.optionsmonthselect.filter(t => t != $(this).parent().text());
+					l.changeoptions('month', l.optionsmonthselect, l.optionsmonth);
+				});
+				elme.on('click', '.itemwork', function() {
+			        l.optionsworkselect = l.optionsworkselect.filter(t => t != $(this).parent().text());
+					l.changeoptions('work', l.optionsworkselect, l.optionswork);
+				});
+				elme.on('click', '.itemarea', function() {
+			        l.optionsareaselect = l.optionsareaselect.filter(t => t != $(this).parent().text());
+					l.changeoptions('area', l.optionsareaselect, l.optionsarea);
+				});
+				elme.on('click', '.itemindex', function() {
+			        l.optionsindexselect = l.optionsindexselect.filter(t => t != $(this).parent().text());
+			        l.optionsname = [];
+				    for(var i = 0; i < l.optionsindexselect.length; i++) {
+			        	var js = l.optionsnameall.filter(t => t.indexOf(l.optionsindexselect[i]) != -1);
+			        	l.optionsname = l.optionsname.concat(js);
+			        }
+				    l.optionsnameselect = l.optionsnameselect.filter(t => l.optionsname.indexOf(t) != -1);
+				    l.changeoptions('index', l.optionsindexselect, l.optionsindex);
+				    l.changeoptionsname();
+				});
+				elme.on('click', '.itemname', function() {
+			        l.optionsnameselect = l.optionsnameselect.filter(t => t != $(this).parent().attr('text'));
+					l.changeoptionsname();
+				});
+				//分页事件
+				elme.on('click', '.espageitem', function() {
+					l.curr = parseInt($(this).find("a").text());
+				    l.setpage(l.curr, l.total);
+				    l.getdata(l.curr, 16);
+				});
+				//上一页
+				elme.on('click', '#pre', function() {
+					if(l.curr > 1) {
+			            l.curr = l.curr - 1;
+			            l.setpage(l.curr, l.total);
+			            l.getdata(l.curr, 16);
+			       }
+				});
+				//下一页
+				elme.on('click', '#next', function() {
+					if(l.curr < l.total) {
+			            l.curr = l.curr + 1;
+			            l.setpage(l.curr, l.total);
+			            l.getdata(l.curr, 16);
+			       }
+				});
+			},
+			//获取显示数据
+			getfilterdata : function() {
+				var l = dataresult;
+				MAT.utils.getUrl('/rest/datamap/filterconfig',{
+					subject: 'dlxf',
+					col: 'year',
+				}, 
+				function(res) {
+				if(res.suc == 'yes') {
+					l.optionsyear = [];
+					for(var i = 0; i < res.list.length; i++) {
+						l.optionsyear.push(res.list[i].val);
+					}
+					l.changeoptions('year', l.optionsyearselect, l.optionsyear);
+					MAT.utils.unblock();
+				}
+				}, function(err) {
+					MAT.utils.unblock();
+				});
+				MAT.utils.getUrl('/rest/datamap/filterconfig',{
+					subject: 'dlxf',
+					col: 'month1',
+				}, 
+				function(res) {
+				if(res.suc == 'yes') {
+					l.optionsmonth = [];
+					for(var i = 0; i < res.list.length; i++) {
+						l.optionsmonth.push(res.list[i].val);
+					}
+					l.changeoptions('month', l.optionsmonthselect, l.optionsmonth);
+					MAT.utils.unblock();
+				}
+				}, function(err) {
+					MAT.utils.unblock();
+				});
+				MAT.utils.getUrl('/rest/datamap/filterconfig',{
+					subject: 'dlxf',
+					col: 'provoice',
+				}, 
+				function(res) {
+				if(res.suc == 'yes') {
+					l.optionsarea = [];
+					for(var i = 0; i < res.list.length; i++) {
+						l.optionsarea.push(res.list[i].val);
+					}
+					l.changeoptions('area', l.optionsareaselect, l.optionsarea);
+					MAT.utils.unblock();
+				}
+				}, function(err) {
+					MAT.utils.unblock();
+				});
+				MAT.utils.getUrl('/rest/datamap/filterconfig',{
+					subject: 'dlxf',
+					col: 'hyflmc',
+				}, 
+				function(res) {
+				if(res.suc == 'yes') {
+					l.optionswork = [];
+					for(var i = 0; i < res.list.length; i++) {
+						l.optionswork.push(res.list[i].val);
+					}
+					l.changeoptions('work', l.optionsworkselect, l.optionswork);
+					MAT.utils.unblock();
+				}
+				}, function(err) {
+					MAT.utils.unblock();
+				});
+				MAT.utils.getUrl('/rest/datamap/filterconfig',{
+					subject: 'dlxf',
+					col: 'sort_char1',
+				}, 
+				function(res) {
+				if(res.suc == 'yes') {
+					l.optionsindex = [];
+					for(var i = 0; i < res.list.length; i++) {
+						l.optionsindex.push(res.list[i].val);
+					}
+					l.changeoptions('index', l.optionsindexselect, l.optionsindex);
+					MAT.utils.unblock();
+				}
+				}, function(err) {
+					MAT.utils.unblock();
+				});
+				MAT.utils.getUrl('/rest/datamap/filterconfig',{
+					subject: 'dlxf',
+					col: 'indexname',
+				}, 
+				function(res) {
+				if(res.suc == 'yes') {
+					l.optionsnameall = [];
+					for(var i = 0; i < res.list.length; i++) {
+						l.optionsnameall.push(res.list[i].val);
+					}
+					l.optionsname = [];
+					l.changeoptionsname();
+					MAT.utils.unblock();
+				}
+				}, function(err) {
+					MAT.utils.unblock();
+				});
+			},
+			getdata: function(curr, size) {
+				var me = dataresult,
+					elem = me.$element;
+				//本地存储取出关键字
+				var keyword = localStorage.getItem("keyword");
+				var year = me.optionsyearselect.join(',');
+				if(me.optionsyearselect.length == me.optionsyear.length) {
+					year = '*';
+				}
+				var month1 = me.optionsmonthselect.join(',');
+				if(me.optionsmonthselect.length == me.optionsmonth.length) {
+					month1 = '*';
+				}
+				var provoice = me.optionsareaselect.join(',');
+				if(me.optionsareaselect.length == me.optionsarea.length) {
+					provoice = '*';
+				}
+				var hyflmc = me.optionsworkselect.join(',');
+				if(me.optionsworkselect.length == me.optionswork.length) {
+					hyflmc = '*';
+				}
+				var sort_char1 = me.optionsindexselect.join(',');
+				if(me.optionsindexselect.length == me.optionsindex.length) {
+					sort_char1 = '*';
+				}
+				var indexnamearr = [];
+				for(var i = 0; i < me.optionsnameselect.length; i++) {
+					indexnamearr.push(me.optionsnameselect[i].split('/')[1]);
+				}
+				var indexname = indexnamearr.join(',');
+				if(me.optionsnameselect.length == me.optionsnameall.length) {
+					indexname = '*';
+				}
+				MAT.utils.postJson('/rest/datamap/subject/',{
+					keyword: keyword,
+					subject: 'dlxf',
+					page: me.curr - 1,
+					size: 16,
+					year: year||'*',
+					month1: month1||'*',
+					provoice: provoice||'*',
+					hyflmc: hyflmc||'*',
+					sort_char1: sort_char1||'*',
+					indexname: indexname||'*',
+				}, 
+				function(res) {
+				if(res.suc == 'yes') {
+					for(var i = 0; i < res.list.length; i++) {
+						if(res.list[i].hyflmc == null) {
+							res.list[i].hyflmc = '空';
+						}
+					}
+					//保存数据
+					me.jqlist = res.list;
+					//页数
+					dataresult.total = Math.ceil(res.total / 16);
+					//数据总数
+					dataresult.totalnums = res.total;
+					}
+					//加载数据
+					me.showdataresult(me.jqlist);
+					MAT.utils.unblock();
+				}, function(err) {
+					MAT.utils.unblock();
+				});
+			},
+			////年份选择操作
+			////未进行函数合并，方便以后单独更改用法
+			yearcheckboxclick:function () {
+				var l = dataresult;
+				var temp = $(this).parent().text();
+			    if(temp == '全部') {
+			        if(l.optionsyearselect.length == l.optionsyear.length) {
+			            l.optionsyearselect = [];
+			        } else {
+			            l.optionsyearselect = l.optionsyear;
+			        }
+			        l.changeoptions('year', l.optionsyearselect, l.optionsyear);
+			        return;
+			    }
+			    if(l.optionsyear.length == 1) {
+			    	if(l.optionsyearselect.length == 1) {
+			    		l.optionsyearselect = [];
+			    	} else {
+			    		l.optionsyearselect = l.optionsyear;
+			    	}
+			    	l.changeoptions('year', l.optionsyearselect, l.optionsyear);
+			    	return;
+			    }  
+			    var index = l.optionsyearselect.indexOf(temp);
+			    if(index == -1) {
+			        l.optionsyearselect.push(temp);
+			    } else {
+			    	//l.optionsyearselect.splice(l.optionsyearselect.indexOf(temp), 1);
+			        var kk = [];
+			        for(var i = 0; i < l.optionsyearselect.length; i++) {
+			        	if(i != index) {
+			        		kk.push(l.optionsyearselect[i]);
+			        	}
+			        }
+			        l.optionsyearselect = kk;
+			    }
+			    l.changeoptions('year', l.optionsyearselect, l.optionsyear);
+			},
+			monthcheckboxclick:function () {
+				var l = dataresult;
+				var temp = $(this).parent().text();
+			    if(temp == '全部') {
+			        if(l.optionsmonthselect.length == l.optionsmonth.length) {
+			            l.optionsmonthselect = [];
+			        } else {
+			            l.optionsmonthselect = l.optionsmonth;
+			        }
+			        l.changeoptions('month', l.optionsmonthselect, l.optionsmonth);
+			        return;
+			    }
+			    if(l.optionsmonth.length == 1) {
+			    	if(l.optionsmonthselect.length == 1) {
+			    		l.optionsmonthselect = [];
+			    	} else {
+			    		l.optionsmonthselect = l.optionsmonth;
+			    	}
+			    	l.changeoptions('month', l.optionsmonthselect, l.optionsmonth);
+			    	return;
+			    }  
+			    var index = l.optionsmonthselect.indexOf(temp);
+			    if(index == -1) {
+			        l.optionsmonthselect.push(temp);
+			    } else {
+			    	//l.optionsmonthselect.splice(l.optionsmonthselect.indexOf(temp), 1);
+			        var kk = [];
+			        for(var i = 0; i < l.optionsmonthselect.length; i++) {
+			        	if(i != index) {
+			        		kk.push(l.optionsmonthselect[i]);
+			        	}
+			        }
+			        l.optionsmonthselect = kk;
+			    }
+			    l.changeoptions('month', l.optionsmonthselect, l.optionsmonth);
+			},
+			areacheckboxclick:function () {
+				var l = dataresult;
+				var temp = $(this).parent().text();
+			    if(temp == '全部') {
+			        if(l.optionsareaselect.length == l.optionsarea.length) {
+			            l.optionsareaselect = [];
+			        } else {
+			            l.optionsareaselect = l.optionsarea;
+			        }
+			        l.changeoptions('area', l.optionsareaselect, l.optionsarea);
+			        return;
+			    }
+			    if(l.optionsarea.length == 1) {
+			    	if(l.optionsareaselect.length == 1) {
+			    		l.optionsareaselect = [];
+			    	} else {
+			    		l.optionsareaselect = l.optionsarea;
+			    	}
+			    	l.changeoptions('area', l.optionsareaselect, l.optionsarea);
+			    	return;
+			    }  
+			    var index = l.optionsareaselect.indexOf(temp);
+			    if(index == -1) {
+			        l.optionsareaselect.push(temp);
+			    } else {
+			    	//l.optionsmonthselect.splice(l.optionsareaselect.indexOf(temp), 1);
+			        var kk = [];
+			        for(var i = 0; i < l.optionsareaselect.length; i++) {
+			        	if(i != index) {
+			        		kk.push(l.optionsareaselect[i]);
+			        	}
+			        }
+			        l.optionsareaselect = kk;
+			    }
+			    l.changeoptions('area', l.optionsareaselect, l.optionsarea);
+			},
+			workcheckboxclick:function () {
+				var l = dataresult;
+				var temp = $(this).parent().text();
+			    if(temp == '全部') {
+			        if(l.optionsworkselect.length == l.optionswork.length) {
+			            l.optionsworkselect = [];
+			        } else {
+			            l.optionsworkselect = l.optionswork;
+			        }
+			        l.changeoptions('work', l.optionsworkselect, l.optionswork);
+			        return;
+			    }
+			    if(l.optionswork.length == 1) {
+			    	if(l.optionsworkselect.length == 1) {
+			    		l.optionsworkselect = [];
+			    	} else {
+			    		l.optionsworkselect = l.optionswork;
+			    	}
+			    	l.changeoptions('work', l.optionsworkselect, l.optionswork);
+			    	return;
+			    }  
+			    var index = l.optionsworkselect.indexOf(temp);
+			    if(index == -1) {
+			        l.optionsworkselect.push(temp);
+			    } else {
+			        //l.optionsworkselect.splice(l.optionsworkselect.indexOf(temp), 1);
+			        var kk = [];
+			        for(var i = 0; i < l.optionsworkselect.length; i++) {
+			        	if(i != index) {
+			        		kk.push(l.optionsworkselect[i]);
+			        	}
+			        }
+			        l.optionsworkselect = kk;
+			    }
+			    l.changeoptions('work', l.optionsworkselect, l.optionswork);
+			},
+			//与指标名称进行了关联
+			indexcheckboxclick:function () {
+				var l = dataresult;
+				var temp = $(this).parent().text();
+			    if(temp == '全部') {
+			        if(l.optionsindexselect.length == l.optionsindex.length) {
+			            l.optionsindexselect = [];
+			            l.optionsname = []
+			            l.optionsnameselect = []
+			        } else {
+			            l.optionsindexselect = l.optionsindex;
+			            l.optionsname = l.optionsnameall;
+			            l.optionsnameselect = l.optionsnameall;
+			        }
+			        l.changeoptions('index', l.optionsindexselect, l.optionsindex);
+			        l.changeoptionsname();
+			        return;
+			    }
+			    if(l.optionsindex.length == 1) {
+			    	if(l.optionsindexselect.length == 1) {
+			    		l.optionsindexselect = [];
+			    		l.optionsname = []
+			            l.optionsnameselect = []
+			    	} else {
+			    		l.optionsindexselect = l.optionsindex;
+			    		l.optionsname = l.optionsnameall;
+			            l.optionsnameselect = l.optionsnameall;
+			    	}
+			    	l.changeoptions('index', l.optionsindexselect, l.optionsindex);
+			    	l.changeoptionsname();
+			    	return;
+			    }  
+			    var index = l.optionsindexselect.indexOf(temp);
+			    if(index == -1) {
+			        l.optionsindexselect.push(temp);
+			    } else {
+			    	//l.optionsindexselect.splice(l.optionsindexselect.indexOf(temp), 1);
+			        var kk = [];
+			        for(var i = 0; i < l.optionsindexselect.length; i++) {
+			        	if(i != index) {
+			        		kk.push(l.optionsindexselect[i]);
+			        	}
+			        }
+			        l.optionsindexselect = kk;
+			    }
+			    l.optionsname = [];
+			    for(var i = 0; i < l.optionsindexselect.length; i++) {
+		        	var js = l.optionsnameall.filter(t => t.indexOf(l.optionsindexselect[i]) != -1);
+		        	l.optionsname = l.optionsname.concat(js);
+		        }
+			    l.optionsnameselect = l.optionsnameselect.filter(t => l.optionsname.indexOf(t) != -1);
+			    l.changeoptions('index', l.optionsindexselect, l.optionsindex);
+			    l.changeoptionsname();
+			},
+			namecheckboxclick:function () {
+				var l = dataresult;
+				var temp = $(this).parent().attr('text');
+			    if(temp == '全部') {
+			        if(l.optionsnameselect.length == l.optionsname.length) {
+			            l.optionsnameselect = [];
+			        } else {
+			            l.optionsnameselect = l.optionsname;
+			        }
+			        l.changeoptionsname();
+			        return;
+			    }
+			    if(l.optionsname.length == 1) {
+			    	if(l.optionsnameselect.length == 1) {
+			    		l.optionsnameselect = [];
+			    	} else {
+			    		l.optionsnameselect = l.optionsname;
+			    	}
+			    	l.changeoptionsname();
+			    	return;
+			    }  
+			    var index = l.optionsnameselect.indexOf(temp);
+			    if(index == -1) {
+			        l.optionsnameselect.push(temp);
+			    } else {
+			    	//l.optionsnameselect.splice(l.optionsnameselect.indexOf(temp), 1);
+			        var kk = [];
+			        for(var i = 0; i < l.optionsnameselect.length; i++) {
+			        	if(i != index) {
+			        		kk.push(l.optionsnameselect[i]);
+			        	}
+			        }
+			        l.optionsnameselect = kk;
+			    }
+			    l.changeoptionsname();
+			},
+			//下拉框内容和标签渲染函数
+			changeoptions: function(text, arr1, arr2) {
+				$("#" + text + "checkbox").empty();
+			    $("#esshowselect" + text).empty();
+			    if(arr1.length == arr2.length) {
+			        $("#" + text + "checkbox").append('<div class="esyearcheckbox">'+
+			        '<label><input type="checkbox" value="" class="' + text + 'checkbox" checked>全部</label></div>');
+			        $("#esshowselect" + text).append('<div class="esshowselectitem">全部</div>')
+			    } else {
+			        $("#" + text + "checkbox").append('<div class="esyearcheckbox">'+
+			        '<label><input type="checkbox" value="" class="' + text + 'checkbox">全部</label></div>');
+			    }
+			    for(var i = 0; i < arr2.length; i++) {
+			        if(arr1.indexOf(arr2[i]) == -1) {
+			            $("#" + text + "checkbox").append('<div class="esyearcheckbox">'+
+			            '<label><input type="checkbox" value="" class="' + text + 'checkbox">'+ arr2[i] +'</label></div>');
+			        } else {
+			            $("#" + text + "checkbox").append('<div class="esyearcheckbox">'+
+			            '<label><input type="checkbox" value="" class="' + text + 'checkbox" checked>'+ arr2[i] +'</label></div>');
+			            if(arr1.length != arr2.length) {
+			            	$("#esshowselect" + text).append('<div class="esshowselectitem">'+ arr2[i] +'<i class="fa fa-times item'+text+'" style="margin-left: 5px"></i></div>');
+			            }
+			        }
+			    }
+			},
+			//指标下拉框渲染函数
+			changeoptionsname: function() {
+				var l = dataresult;
+				$("#namecheckbox").empty();
+			    $("#esshowselectname").empty();
+			    if(l.optionsnameselect.length == l.optionsname.length) {
+			    	if(l.optionsname.length != 0) {
+			    		$("#esshowselectname").append('<div class="esshowselectitem">全部</div>')
+			    		$("#namecheckbox").append('<div class="esyearcheckbox">'+
+				        '<label text="全部"><input type="checkbox" value="" class="namecheckbox" checked>全部</label></div>');
+			    	}
+			    } else {
+			        $("#namecheckbox").append('<div class="esyearcheckbox">'+
+			        '<label text="全部"><input type="checkbox" value="" class="namecheckbox">全部</label></div>');
+			    }
+			    for(var i = 0; i < l.optionsname.length; i++) {
+			        if(l.optionsnameselect.indexOf(l.optionsname[i]) == -1) {
+			            $("#namecheckbox").append('<div class="esyearcheckbox">'+
+			            '<label text='+l.optionsname[i]+'><input type="checkbox" value="" class="namecheckbox">'+ l.optionsname[i].split('/')[1] +'</label></div>');
+			        } else {
+			            $("#namecheckbox").append('<div class="esyearcheckbox">'+
+			            '<label text='+l.optionsname[i]+'><input type="checkbox" value="" class="namecheckbox" checked>'+ l.optionsname[i].split('/')[1] +'</label></div>');
+			            if(l.optionsnameselect.length != l.optionsname.length) {
+			            	$("#esshowselectname").append('<div class="esshowselectitem" text='+l.optionsname[i]+'>'+ l.optionsname[i].split('/')[1] +'<i class="fa fa-times itemname" style="margin-left: 5px"></i></div>');
+			            }
+			        }
+			    }
+			},
+			//数据结果展示
+			showdataresult: function(list) {
+				if(list.length == 0) {
+					$("#esdata").css('display', 'none');
+					$("#esnodata").css('display', 'block');
+				} else {
+					$("#esnodata").css('display', 'none');
+					$("#esdata").css('display', 'block');
+					$("#espagenumber").text(dataresult.totalnums);
+					dataresult.showcard(list);
+					dataresult.showlist(list);
+				}
+				dataresult.setpage(dataresult.curr, dataresult.total);
+			},
+			//卡片展示函数
+			showcard: function(list) {
+				$("#jqdata").empty();
+				for (var t = 0; t < list.length; t++) {
+					var temp = list[t].hyflmc;
+					if(list[t].hyflmc == '空') {
+						temp = '-';
+					}
+					var temp1 = list[t].month1;
+					if(list[t].month1 == '') {
+						temp1 = '';
+					} else {
+						temp1 += '月'; 
+					}
+					var tempzbval = list[t].zbval;
+					if(list[t].unit == '百分比') {
+						tempzbval = parseFloat(list[t].zbval).toFixed(2);
+					} else {
+						tempzbval = Math.round(list[t].zbval);
+					}
+				    $("#jqdata").append(' <div class=" col-lg-3 col-sm-3 cardmodal" index='+t+'>'+
+				    '<div class="escontentcard">'+
+				            '<div class="escard1"><span class="escard1label">'+ list[t].provoice +'</span>'+ list[t].year +'年'+ temp1 +'</div>'+
+				            '<div class="escard2">'+ tempzbval +'<span class="escard2span">'+list[t].unit +'</span></div>'+
+				            '<div class="escard3" data-toggle="tooltip"  title="'+ list[t].indexname + '">'+ list[t].indexname+ '</div>'+
+				            '<div class="escard4">'+ temp+ '</div>'+
+				            '<div class="escardline"></div>'+
+				            '<div class="escard5">'+
+				                '<div class="escardicon"></div>'+
+				                '<div class="escardtext" data-toggle="tooltip"  title="'+ list[t].lybb +'\t' + list[t].index_sort +'">'+ list[t].lybb +'<br />'+ list[t].index_sort +'</div>'+
+				            '</div>'+
+				    '</div>'+
+				'</div>');
+				}
+			},
+			//列表展示函数
+			showlist: function(list) {
+				$("#eslisttbody").empty();
+				for(var w = 0; w < list.length; w++) {
+					var temp = list[w].hyflmc;
+					if(list[w].hyflmc == '空') {
+						temp = '';
+					}
+					var tempzbval = list[w].zbval;
+					if(list[w].unit == '百分比') {
+						tempzbval = parseFloat(list[w].zbval).toFixed(2);
+					} else {
+						tempzbval = Math.round(list[w].zbval);
+					}
+				    $("#eslisttbody").append('<tr class="eslisttr cardmodal" index='+w+'>'+
+				    '<td>'+ (((dataresult.curr - 1) * 16) + parseInt(w + 1)) +'</td>'+
+				    '<td>'+ (list[w].year || '') +'</td>'+
+				    '<td>'+ (list[w].month1 || '') +'</td>'+
+				    '<td>'+ (list[w].provoice || '') +'</td>'+
+				    '<td>'+ (temp || '') +'</td>'+
+				    '<td>'+ (list[w].sort_char1 || '') +'</td>'+
+				    '<td>'+ (list[w].indexname || '') +'</td>'+
+				    '<td>'+ tempzbval +'</td>'+
+				    '<td>'+ (list[w].unit || '') +'</td>'+
+				    '<td>'+ (list[w].lybb || '') +'</td>'+
+				    '<td>'+ (list[w].index_sort || '') +'</td>'+
+				    '</tr>')
+				}
+			},
+			//分页
+			pagelist: function(curr, total) {
+			    list = [];
+			    if(total < 7) {
+			        for(var r = 1; r < total + 1; r++) {
+			            list.push(r);
+			        }
+			    } else {
+			        if(curr < 4) { 
+			            list = [1,2,3,4,'...',total];
+			        } else {
+			            if(curr > total - 4) {
+			                list = [1, '...', total-3,total-2,total-1,total];
+			            } else {
+			                list = [1,'...',curr-1, curr, curr+1,'...',total];
+			            }
+			        }
+			    }
+			    return list;
+			},
+			setpage: function(curr, total) {
+			    var list = dataresult.pagelist(curr, total);
+			    $("#espage").empty();
+			    $("#espage").append('<li id="pre"><a style="border: none;background:transparent;color:#729bbf">上一页</a></li>');
+			    for(var q = 0; q < list.length; q++) {
+			        if(list[q] == curr) {
+			            $("#espage").append('<li class="active"><a style="border: none">'+ list[q] +'</a></li>'); 
+			        } else {
+			            if(list[q] == '...') {
+			                $("#espage").append('<li><a style="border: none;background:transparent;color:#729bbf">'+ list[q] +'</a></li>');
+			            } else {
+			                $("#espage").append('<li class="espageitem"><a style="border: none;background:transparent;color:#729bbf">'+ list[q] +'</a></li>');
+			            }
+			        }
+			    }
+			    $("#espage").append('<li id="next"><a style="border: none;background:transparent;color:#729bbf">下一页</a></li>');
+			},
+			//月度图表
+			setLine : function(list) {
+				var myChart = echarts
+						.init(document.getElementById('chartmonth'));
+				var optionmonth = [];
+				var optionsvalue = [];
+				for(var i = 0; i < list.length; i++) {
+					optionmonth.push(list[i].month1);
+					if(list[i].unit == '百分比') {
+						optionsvalue.push(parseFloat(list[i].zbval).toFixed(2));
+					} else {
+						optionsvalue.push(Math.round(list[i].zbval));
+					}
+				}
+				option = {
+					    tooltip: {
+					        trigger: 'axis'
+					    },
+					    grid: {
+					        left: '3%',
+					        right: '4%',
+					        bottom: '3%',
+					        containLabel: true
+					    },
+					    toolbox: {
+					        feature: {
+					            saveAsImage: {}
+					        }
+					    },
+					    xAxis: {
+					        type: 'category',
+					        boundaryGap: false,
+					        data: optionmonth,
+					        axisLine: {
+			                    lineStyle: {
+			                        type: 'solid',
+			                        color: '#729bbf',//左边线的颜色
+			                        width:'1'//坐标线的宽度
+			                    }
+			                },
+			                axisLabel: {
+			                    textStyle: {
+			                        color: '#729bbf',//坐标值得具体的颜色
+			 
+			                    }
+			                }
+					    },
+					    yAxis: {
+					        type: 'value',
+					        axisLine: {
+			                    lineStyle: {
+			                        type: 'solid',
+			                        color: '#729bbf',//左边线的颜色
+			                        width:'1'//坐标线的宽度
+			                    }
+			                },
+			                axisLabel: {
+			                    textStyle: {
+			                        color: '#729bbf',//坐标值得具体的颜色
+			 
+			                    }
+			                }
+					    },
+					    series: [
+					        {
+					            name:'指标值',
+					            type:'line',
+					            stack: '总量',
+					            data:optionsvalue
+					        }
+					    ]
+					};
+				myChart.setOption(option);
+				window.addEventListener('resize', function() {
+					setTimeout(function() {
+						myChart.resize();
+					}, 500)
+				});
+			},
+			//年度图表
+			setLine2 : function(list) {
+				var myChart = echarts
+						.init(document.getElementById('chartyear'));
+				var optionyear = [];
+				var optionsvalue = [];
+				for(var i = 0; i < list.length; i++) {
+					optionyear.push(list[i].year);
+					if(list[i].unit == '百分比') {
+						optionsvalue.push(parseFloat(list[i].zbval).toFixed(2));
+					} else {
+						optionsvalue.push(Math.round(list[i].zbval));
+					}
+				}
+				option = {
+					    tooltip: {
+					        trigger: 'axis'
+					    },
+					    grid: {
+					        left: '3%',
+					        right: '4%',
+					        bottom: '3%',
+					        containLabel: true
+					    },
+					    toolbox: {
+					        feature: {
+					            saveAsImage: {}
+					        }
+					    },
+					    xAxis: {
+					        type: 'category',
+					        boundaryGap: false,
+					        data: optionyear,
+					        axisLine: {
+			                    lineStyle: {
+			                        type: 'solid',
+			                        color: '#729bbf',//左边线的颜色
+			                        width:'1'//坐标线的宽度
+			                    }
+			                },
+			                axisLabel: {
+			                    textStyle: {
+			                        color: '#729bbf',//坐标值得具体的颜色
+			 
+			                    }
+			                }
+					    },
+					    grid: { // 控制图的大小，调整下面这些值就可以，
+				             x2: 20,
+				             x: 70,
+				             y2: 80,// y2可以控制 X轴跟Zoom控件之间的间隔，避免以为倾斜后造成 label重叠到zoom上
+				         },
+					    yAxis: {
+					        type: 'value',
+					        axisLine: {
+			                    lineStyle: {
+			                        type: 'solid',
+			                        color: '#729bbf',//左边线的颜色
+			                        width:'1'//坐标线的宽度
+			                    }
+			                },
+			                axisLabel: {
+			                    textStyle: {
+			                        color: '#729bbf',//坐标值得具体的颜色
+			 
+			                    }
+			                }
+					    },
+					    dataZoom: [{
+					        type: 'inside',
+					        start: 0,
+					        end: 100,
+					    }, {
+					        start: 0,
+					        end: 100,
+					        handleIcon: 'M10.7,11.9v-1.3H9.3v1.3c-4.9,0.3-8.8,4.4-8.8,9.4c0,5,3.9,9.1,8.8,9.4v1.3h1.3v-1.3c4.9-0.3,8.8-4.4,8.8-9.4C19.5,16.3,15.6,12.2,10.7,11.9z M13.3,24.4H6.7V23h6.6V24.4z M13.3,19.6H6.7v-1.4h6.6V19.6z',
+					        handleSize: '80%',
+					        handleStyle: {
+					            color: '#729bbf',
+					            shadowBlur: 3,
+					            shadowColor: 'rgba(0, 0, 0, 0.6)',
+					            shadowOffsetX: 2,
+					            shadowOffsetY: 2
+					        }
+					    }],
+					    series: [
+					        {
+					            name:'指标值',
+					            type:'line',
+					            stack: '总量',
+					            data: optionsvalue
+					        }
+					    ]
+					};
+				myChart.setOption(option);
+				window.addEventListener('resize', function() {
+					setTimeout(function() {
+						myChart.resize();
+					}, 500)
+				});
+			},
+			//地区图表
+			setBar : function(barlist) {
+				var myChart = echarts
+						.init(document.getElementById('chartarea'));
+				var optionarea = [];
+				var optionsvalue = [];
+				for(var i = 0; i < barlist.length; i++) {
+					if(barlist[i].provoice != '全国') {
+						optionarea.push(barlist[i].provoice);
+						if(barlist[i].unit == '百分比') {
+							optionsvalue.push(parseFloat(barlist[i].zbval).toFixed(2));
+						} else {
+							optionsvalue.push(Math.round(barlist[i].zbval));
+						}
+					}
+				}
+				option = {
+					    color: ['#3398DB'],
+					    tooltip : {
+					        trigger: 'axis',
+					        axisPointer : {            // 坐标轴指示器，坐标轴触发有效
+					            type : 'shadow'        // 默认为直线，可选为：'line' | 'shadow'
+					        }
+					    },
+					    grid: {
+					        left: '3%',
+					        right: '4%',
+					        bottom: '3%',
+					        containLabel: true
+					    },
+					    xAxis : [
+					        {
+					            type : 'category',
+					            data : optionarea,
+					            axisTick: {
+					                alignWithLabel: true
+					            },
+					            axisLabel:{
+					        		interval: 0,
+					        		 rotate:45,
+					        	},
+					        	axisLine: {
+				                    lineStyle: {
+				                        type: 'solid',
+				                        color: '#729bbf',//左边线的颜色
+				                        width:'1'//坐标线的宽度
+				                    }
+				                },
+				                axisLabel: {
+				                    textStyle: {
+				                        color: '#729bbf',//坐标值得具体的颜色
+				 
+				                    }
+				                }
+					        }
+					    ],
+					    grid: { // 控制图的大小，调整下面这些值就可以，
+					    	 x: 70,
+				             x2: 20,
+				             y2: 80,// y2可以控制 X轴跟Zoom控件之间的间隔，避免以为倾斜后造成 label重叠到zoom上
+				         },
+					    yAxis : [
+					        {
+					            type : 'value',
+					            axisLine: {
+				                    lineStyle: {
+				                        type: 'solid',
+				                        color: '#729bbf',//左边线的颜色
+				                        width:'1'//坐标线的宽度
+				                    }
+				                },
+				                axisLabel: {
+				                    textStyle: {
+				                        color: '#729bbf',//坐标值得具体的颜色
+				 
+				                    }
+				                }
+					        }
+					    ],
+					    dataZoom: [{
+					        type: 'inside',
+					        start: 0,
+					        end: 100,
+					        borderColor:"#729bbf"
+					    }, {
+					        start: 0,
+					        end: 100,
+					        handleIcon: 'M10.7,11.9v-1.3H9.3v1.3c-4.9,0.3-8.8,4.4-8.8,9.4c0,5,3.9,9.1,8.8,9.4v1.3h1.3v-1.3c4.9-0.3,8.8-4.4,8.8-9.4C19.5,16.3,15.6,12.2,10.7,11.9z M13.3,24.4H6.7V23h6.6V24.4z M13.3,19.6H6.7v-1.4h6.6V19.6z',
+					        handleSize: '80%',
+					        handleStyle: {
+					            color: '#729bbf',
+					            shadowBlur: 3,
+					            shadowColor: 'rgba(0, 0, 0, 0.6)',
+					            shadowOffsetX: 2,
+					            shadowOffsetY: 2
+					        }
+					    }],
+					    series : [
+					        {
+					            name:'指标值',
+					            type:'bar',
+					            barWidth: '60%',
+					            data: optionsvalue
+					        }
+					    ]
+					};
+				myChart.setOption(option);
+				window.addEventListener('resize', function() {
+					setTimeout(function() {
+						myChart.resize();
+					}, 500)
+				});
+			},
+			//行业分类图表
+			setBar2 : function(list) {
+				var myChart = echarts
+						.init(document.getElementById('chartwork'));
+				var optionwork = [];
+				var optionvalue = [];
+				for(var i = 0; i < list.length; i++) {
+					optionwork.push(list[i].hyflmc);
+					if(list[i].unit == '百分比') {
+						optionvalue.push(parseFloat(list[i].zbval).toFixed(2));
+					} else {
+						optionvalue.push(Math.round(list[i].zbval));
+					}
+				}
+				option = {
+					    color: ['#3398DB'],
+					    tooltip : {
+					        trigger: 'axis',
+					        axisPointer : {            // 坐标轴指示器，坐标轴触发有效
+					            type : 'shadow'        // 默认为直线，可选为：'line' | 'shadow'
+					        }
+					    },
+					    grid: {
+					        left: '3%',
+					        right: '4%',
+					        bottom: '3%',
+					        containLabel: true
+					    },
+					    xAxis : [
+					        {
+					            type : 'category',
+					            data : optionwork,
+					            axisTick: {
+					                alignWithLabel: true
+					            },
+					            axisLabel:{
+					        		interval: 0,
+					        		 rotate:45,
+					        	},
+					        	axisLine: {
+				                    lineStyle: {
+				                        type: 'solid',
+				                        color: '#729bbf',//左边线的颜色
+				                        width:'1'//坐标线的宽度
+				                    }
+				                },
+				                axisLabel: {
+				                    textStyle: {
+				                        color: '#729bbf',//坐标值得具体的颜色
+				 
+				                    }
+				                }
+					        }
+					    ],
+					    grid: { // 控制图的大小，调整下面这些值就可以，
+				             x: 70,
+				             x2: 20,
+				             y2: 80,// y2可以控制 X轴跟Zoom控件之间的间隔，避免以为倾斜后造成 label重叠到zoom上
+				         },
+					    yAxis : [
+					        {
+					            type : 'value',
+					            axisLine: {
+				                    lineStyle: {
+				                        type: 'solid',
+				                        color: '#729bbf',//左边线的颜色
+				                        width:'1'//坐标线的宽度
+				                    }
+				                },
+				                axisLabel: {
+				                    textStyle: {
+				                        color: '#729bbf',//坐标值得具体的颜色
+				 
+				                    }
+				                }
+					        }
+					    ],
+					    dataZoom: [{
+					        type: 'inside',
+					        start: 0,
+					        end: 10,
+					        borderColor:"#729bbf"
+					    }, {
+					        start: 0,
+					        end: 10,
+					        handleIcon: 'M10.7,11.9v-1.3H9.3v1.3c-4.9,0.3-8.8,4.4-8.8,9.4c0,5,3.9,9.1,8.8,9.4v1.3h1.3v-1.3c4.9-0.3,8.8-4.4,8.8-9.4C19.5,16.3,15.6,12.2,10.7,11.9z M13.3,24.4H6.7V23h6.6V24.4z M13.3,19.6H6.7v-1.4h6.6V19.6z',
+					        handleSize: '80%',
+					        handleStyle: {
+					            color: '#729bbf',
+					            shadowBlur: 3,
+					            shadowColor: 'rgba(0, 0, 0, 0.6)',
+					            shadowOffsetX: 2,
+					            shadowOffsetY: 2
+					        }
+					    }],
+					    series : [
+					        {
+					            name:'指标值',
+					            type:'bar',
+					            barWidth: '60%',
+					            data: optionvalue
+					        }
+					    ]
+					};
+				myChart.setOption(option);
+				window.addEventListener('resize', function() {
+					setTimeout(function() {
+						myChart.resize();
+					}, 500)
+				});
+			},
+			//指标图表
+			setBar3 : function(list) {
+				var myChart = echarts
+						.init(document.getElementById('chartindex'));
+				var optionindex = [];
+				var optionvalue = [];
+				for(var i = 0; i < list.length; i++) {
+					optionindex.push(list[i].indexname);
+					if(list[i].unit == '百分比') {
+						optionvalue.push(parseFloat(list[i].zbval).toFixed(2));
+					} else {
+						optionvalue.push(Math.round(list[i].zbval));
+					}
+				}
+				option = {
+					    color: ['#3398DB'],
+					    tooltip : {
+					        trigger: 'axis',
+					        axisPointer : {            // 坐标轴指示器，坐标轴触发有效
+					            type : 'shadow'        // 默认为直线，可选为：'line' | 'shadow'
+					        }
+					    },
+					    grid: {
+					        left: '3%',
+					        right: '4%',
+					        bottom: '3%',
+					        containLabel: true
+					    },
+					    xAxis : [
+					        {
+					            type : 'category',
+					            data : optionindex,
+					            axisTick: {
+					                alignWithLabel: true
+					            },
+					            axisLabel:{
+					        		interval: 0,
+					        		 rotate:45,
+					        	},
+					        	axisLine: {
+				                    lineStyle: {
+				                        type: 'solid',
+				                        color: '#729bbf',//左边线的颜色
+				                        width:'1'//坐标线的宽度
+				                    }
+				                },
+				                axisLabel: {
+				                    textStyle: {
+				                        color: '#729bbf',//坐标值得具体的颜色
+				 
+				                    }
+				                }
+					        }
+					    ],
+					    grid: { // 控制图的大小，调整下面这些值就可以，
+				             x: 70,
+				             x2: 20,
+				             y2: 80,// y2可以控制 X轴跟Zoom控件之间的间隔，避免以为倾斜后造成 label重叠到zoom上
+				         },
+					    yAxis : [
+					        {
+					            type : 'value',
+					            axisLine: {
+				                    lineStyle: {
+				                        type: 'solid',
+				                        color: '#729bbf',//左边线的颜色
+				                        width:'1'//坐标线的宽度
+				                    }
+				                },
+				                axisLabel: {
+				                    textStyle: {
+				                        color: '#729bbf',//坐标值得具体的颜色
+				 
+				                    }
+				                }
+					        }
+					    ],
+					    dataZoom: [{
+					        type: 'inside',
+					        start: 0,
+					        end: 50,
+					        borderColor:"#729bbf"
+					    }, {
+					        start: 0,
+					        end: 50,
+					        handleIcon: 'M10.7,11.9v-1.3H9.3v1.3c-4.9,0.3-8.8,4.4-8.8,9.4c0,5,3.9,9.1,8.8,9.4v1.3h1.3v-1.3c4.9-0.3,8.8-4.4,8.8-9.4C19.5,16.3,15.6,12.2,10.7,11.9z M13.3,24.4H6.7V23h6.6V24.4z M13.3,19.6H6.7v-1.4h6.6V19.6z',
+					        handleSize: '80%',
+					        handleStyle: {
+					            color: '#729bbf',
+					            shadowBlur: 3,
+					            shadowColor: 'rgba(0, 0, 0, 0.6)',
+					            shadowOffsetX: 2,
+					            shadowOffsetY: 2
+					        }
+					    }],
+					    series : [
+					        {
+					            name:'指标值',
+					            type:'bar',
+					            barWidth: '60%',
+					            data: optionvalue
+					        }
+					    ]
+					};
+				myChart.setOption(option);
+				window.addEventListener('resize', function() {
+					setTimeout(function() {
+						myChart.resize();
+					}, 500)
+				});
+			},
+			//获取展示数据
+			getOptiondata: function(list, body, fuc) {
+				MAT.utils.postJson('/rest/datamap/indexname',body, 
+						function(res) {
+						if(res.suc == 'yes') {
+							fuc(res.list);
+						}
+						MAT.utils.unblock();
+					}, function(err) {
+						MAT.utils.unblock();
+					});
+			},
+	};
+	dataresult.init();
+});

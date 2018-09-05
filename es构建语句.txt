@@ -1,0 +1,159 @@
+package com.ygsoft.matcloud.cec.datamap.server.es.repository;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.Operator;
+import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort.Direction;
+import org.springframework.data.elasticsearch.core.ElasticsearchTemplate;
+import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilder;
+import org.springframework.data.jpa.domain.JpaSort;
+import org.springframework.stereotype.Repository;
+import org.springframework.util.StringUtils;
+
+/**
+ * 全文搜索ES访问类
+ * 
+ */
+@Repository
+public class SearchRepository<T> {
+
+	@Autowired
+	ElasticsearchTemplate template;
+
+	/**
+	 * @param keyword
+	 *            搜索关键字
+	 * @param params
+	 *            精确搜索参数
+	 * @param sortDesc
+	 *            到排序字段
+	 * @param sortAsc
+	 *            正排序字段
+	 * @param clazz
+	 *            返回实体类型
+	 * @return
+	 */
+	public Page<T> search(String keyword, Map<String, Object> params, String sortDesc, String sortAsc, Class<T> clazz) {
+		Page<T> page = null;
+		// 获取参数
+		int currentPage = (int) params.get("page");
+		int size = (int) params.get("size");
+
+		// 定义自定义搜索
+		NativeSearchQueryBuilder nativeSearchQueryBuilder = new NativeSearchQueryBuilder();
+		// 定义布尔查询用于各个字段精确匹配
+		BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
+		// 定义模糊查询用于全字段模糊匹配
+		QueryBuilder queryBuilderAll = QueryBuilders.matchQuery("_all", keyword).operator(Operator.AND);
+
+		// 处理keyword条件
+		if (!StringUtils.isEmpty(keyword) && !"*".equals(keyword))
+			boolQueryBuilder.must(queryBuilderAll);
+
+		// 动态添加各个字段精确查询条件
+		Set<String> nameSet = params.keySet();
+		for (String name : nameSet) {
+			if ("subject".equals(name) || "keyword".equals(name) || "page".equals(name) || "size".equals(name)) {
+				continue;
+			} else {
+				String param = (String) params.get(name);
+				if (!"*".equals(param))
+					boolQueryBuilder.must(getBoolQueryBuilder(name, param));
+			}
+		}
+
+		// 添加布尔查询
+		nativeSearchQueryBuilder.withQuery(boolQueryBuilder);
+
+		// 定义排序字段
+		JpaSort sort = null;
+		sort = JpaSort.unsafe(Direction.DESC, "_score");
+		if (!StringUtils.isEmpty(sortDesc)) {
+			for (String desc : sortDesc.split(","))
+				sort = sort.andUnsafe(Direction.DESC, desc);
+		}
+		if (!StringUtils.isEmpty(sortAsc)) {
+			for (String asc : sortAsc.split(","))
+				sort = sort.andUnsafe(Direction.ASC, asc);
+		}
+		// 分页
+		Pageable pageable = PageRequest.of(currentPage, size, sort);
+		// 添加分页
+		nativeSearchQueryBuilder.withPageable(pageable);
+		// 执行查询
+		page = template.queryForPage(nativeSearchQueryBuilder.build(), clazz);
+
+		return page;
+	}
+
+	/**
+	 * @param name
+	 *            字段名
+	 * @param param
+	 *            参数字符串, 逗号分隔
+	 * @return
+	 */
+	private BoolQueryBuilder getBoolQueryBuilder(String name, String param) {
+		BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
+		for (String p : param.split(","))
+			boolQueryBuilder.should(QueryBuilders.matchQuery(name, p));
+		return boolQueryBuilder;
+	}
+
+	/**
+	 * @param params
+	 *            参数
+	 * @param sortDesc
+	 *            倒排序字段
+	 * @param sortAsc
+	 *            正排序字段
+	 * @param clazz
+	 *            返回实体类型
+	 * @return
+	 */
+	public List<T> searchIndexname(Map<String, String> params, String sortDesc, String sortAsc, Class<T> clazz) {
+		List<T> list = null;
+		NativeSearchQueryBuilder nativeSearchQueryBuilder = new NativeSearchQueryBuilder();
+		BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
+
+		Set<String> nameSet = params.keySet();
+		for (String name : nameSet) {
+			if ("subject".equals(name) || "keyword".equals(name) || "page".equals(name) || "size".equals(name)) {
+				continue;
+			} else {
+				String param = (String) params.get(name);
+				if (!"*".equals(param))
+					boolQueryBuilder.must(QueryBuilders.matchQuery(name, param));
+			}
+		}
+
+		nativeSearchQueryBuilder.withQuery(boolQueryBuilder);
+
+		JpaSort sort = null;
+		sort = JpaSort.unsafe(Direction.DESC, "_score");
+		if (!StringUtils.isEmpty(sortDesc)) {
+			for (String desc : sortDesc.split(","))
+				sort = sort.andUnsafe(Direction.DESC, desc);
+		}
+		if (!StringUtils.isEmpty(sortAsc)) {
+			for (String asc : sortAsc.split(","))
+				sort = sort.andUnsafe(Direction.ASC, asc);
+		}
+
+		Pageable pageable = PageRequest.of(0, 999, sort);
+		nativeSearchQueryBuilder.withPageable(pageable);
+		list = template.queryForList(nativeSearchQueryBuilder.build(), clazz);
+
+		return list;
+	}
+
+}

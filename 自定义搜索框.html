@@ -83,17 +83,22 @@
             }
           } 
       })
-      function showremove() {
-          if($(".searchinput").val() != '') {
-            $(".removetext").css("display", "block");
-          }
-      }
-      $(document).keydown(function(e) {
-        if($(".searchinput").val() != '') {
+      if(document.all){
+         $(".searchinput").on('propertychange',function(){
+            if($(".searchinput").val() != '') {
             $(".removetext").css("display", "block");
             console.log(111);
-          }
-      })
+            }
+        })
+      }
+        else{
+            $(".searchinput").on('input',function(){
+            if($(".searchinput").val() != '') {
+            $(".removetext").css("display", "block");
+            console.log(111);
+            }
+        })
+        }
       $(document).on("click", ".removetext", function() {
         $(".searchinput").val('');
         $(".removetext").css("display", "none");
